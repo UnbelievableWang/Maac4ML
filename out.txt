@@ -1,0 +1,15 @@
+Size of an element in G1: 130 bytes
+Size of an element in Gt: 130 bytes
+Size of an element in ZN: 64 bytes
+composite generate a PP in 428.10882000000004ms
+composite exp on g1 in 4.074673000000001ms
+composite exp on gt in 0.055618ms
+composite pairing in 16.788420000000002ms
+
+Size of an element in G1: 130 bytes
+Size of an element in Gt: 130 bytes
+Size of an element in Zq: 64 bytes
+generate a PP in 765.546984ms
+exp on g1 in 4.309467000000001ms
+exp on gt in 0.489191ms
+pairing in 14.508919ms
