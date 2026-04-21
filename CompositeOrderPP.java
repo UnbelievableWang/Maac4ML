@@ -1,4 +1,5 @@
-package my_test;
+package maac4ml;
+
 import it.unisa.dia.gas.jpbc.Element;
 import it.unisa.dia.gas.jpbc.ElementPowPreProcessing;
 import it.unisa.dia.gas.jpbc.Field;
@@ -7,161 +8,227 @@ import it.unisa.dia.gas.jpbc.PairingParameters;
 import it.unisa.dia.gas.jpbc.PairingParametersGenerator;
 import it.unisa.dia.gas.plaf.jpbc.pairing.PairingFactory;
 import it.unisa.dia.gas.plaf.jpbc.pairing.a1.TypeA1CurveGenerator;
-//import it.unisa.dia.gas.plaf.jpbc.util.io.PairingParametersReader;
-import java.util.HashMap;
 
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import java.util.Random;
+
+/**
+ * Composite-order public parameters for the demo prototype.
+ *
+ * This class is intentionally close in spirit to the user-provided skeleton,
+ * but fixes two practical issues for the demo:
+ * 1) the GT exponentiation base is derived from a real pairing value rather
+ *    than the identity element;
+ * 2) helper methods are added for signed exponentiation, hashing, and size
+ *    accounting so the later benchmarks are easy to extend.
+ */
 public class CompositeOrderPP {
-    ElementPowPreProcessing g1;
-    ElementPowPreProcessing g2;
-    ElementPowPreProcessing egg;
+    private final Pairing pairing;
+    private final Field gField;
+    private final Field gtField;
+    private final Field znField;
 
-    Pairing bp;
-    Field G1;
-    Field G2;
-    Field Gt;
-    Field ZN;
-    CompositeOrderPP() {
-        // Load custom pairing parameters for composite order from a file or string.
-    	 PairingParametersGenerator parametersGenerator = new TypeA1CurveGenerator(3, 512/3);
-         PairingParameters pp = parametersGenerator.generate();
+    private final Element gBase;
+    private final Element hBase;
+    private final Element gtBase;
 
-         this.bp = PairingFactory.getPairing(pp);
-        this.G1 = bp.getG1();
-        this.G2=bp.getG2();
-        this.Gt=bp.getGT();
-        Element gg1 = G1.newRandomElement();
-        this.g1 = gg1.getElementPowPreProcessing();
-        Element gg2 = G2.newRandomElement();
-        this.g2 = gg2.getElementPowPreProcessing();
-        Element ggg = Gt.newOneElement();
-        this.ZN= bp.getZr();
-        this.egg = ggg.getElementPowPreProcessing();
-        
+    private final ElementPowPreProcessing gPow;
+    private final ElementPowPreProcessing hPow;
+    private final ElementPowPreProcessing gtPow;
+
+    private final BigInteger order;
+    private final Random random;
+
+    public CompositeOrderPP() {
+        this(3, 512 / 3, new Random(20260421L));
     }
-    public Element g_(Element z) {
-    	return g1.pow(z.toBigInteger());
-		//return g1.pow(ZN.getNqr().toBigInteger());
-	}
-    public Element egg_(Element z) {
-    	return egg.pow(z.toBigInteger());
-		//return g1.pow(ZN.getNqr().toBigInteger());
-	}
-    public Element generateZN() {
-		return ZN.getNqr();
-	}
 
-	public static void testPP() {
+    public CompositeOrderPP(int numPrimes, int qBits, Random random) {
+        PairingParametersGenerator generator = new TypeA1CurveGenerator(numPrimes, qBits);
+        PairingParameters parameters = generator.generate();
 
-		double pptime=0;
-		long time0 = System.nanoTime();
-		for(int i=0;i<10;i++) {
-			CompositeOrderPP pp=new CompositeOrderPP();
-			System.out.println("GP "+pptime+"ms");
-		}
-		
-	    
-	    long time1 = System.nanoTime();
-	    pptime += (time1 - time0) / 1_000_000.0;
-		
-		System.out.println("composite generate a PP in "+pptime/10+"ms");
-		
-	}
-	public static void testexp() {
+        this.pairing = PairingFactory.getPairing(parameters);
+        this.gField = pairing.getG1();
+        this.gtField = pairing.getGT();
+        this.znField = pairing.getZr();
+        this.order = znField.getOrder();
+        this.random = random;
 
-		double exptime=0;
-		CompositeOrderPP pp=new CompositeOrderPP();
-		long time0 = System.nanoTime();
-		for(int i=0;i<100;i++) {
-			Element rE=pp.g_(pp.generateZN());
-		}
-		
-	    
-	    long time1 = System.nanoTime();
-	    exptime += (time1 - time0) / 1_000_000.0;
-		
-		System.out.println("composite exp on g1 in "+exptime/100+"ms");
-		
-	}
-	public static void testpairing() {
+        this.gBase = gField.newRandomElement().getImmutable();
+        this.hBase = gField.newRandomElement().getImmutable();
+        this.gtBase = pairing.pairing(gBase, hBase).getImmutable();
 
-		double pairtime=0;
-		CompositeOrderPP pp=new CompositeOrderPP();
-		
-		Element ga=pp.g_(pp.generateZN());
-		Element gb=pp.g_(pp.generateZN());
-		long time0 = System.nanoTime();
-		for(int i=0;i<100;i++) {
-			Element rE=pp.bp.pairing(ga, gb);
-		}
-		
-	    
-	    long time1 = System.nanoTime();
-	    pairtime += (time1 - time0) / 1_000_000.0;
-		
-		System.out.println("composite pairing in "+pairtime/100+"ms");
-		
-	}
-	public static void testgtexp() {
-
-		double pairtime=0;
-		CompositeOrderPP pp=new CompositeOrderPP();
-		long time0 = System.nanoTime();
-		for(int i=0;i<100;i++) {
-			Element rE=pp.egg_(pp.generateZN());
-		}
-		
-	    
-	    long time1 = System.nanoTime();
-	    pairtime += (time1 - time0) / 1_000_000.0;
-		
-		System.out.println("composite exp on gt in "+pairtime/100+"ms");
-		
-	}
-
-    public static void testComposite() {
-        // Initialize CompositeOrderPP with a path to your custom parameters.
-    	testPP();
-		testexp();
-		testgtexp();
-		testpairing();
-        // Your further test cases and operations go here
+        this.gPow = gBase.getElementPowPreProcessing();
+        this.hPow = hBase.getElementPowPreProcessing();
+        this.gtPow = gtBase.getElementPowPreProcessing();
     }
-    public static long getSizeInBytes(Object obj) throws Exception {
-	    if (obj instanceof Element) {
-	        // Use JPBC's built-in serialization method for Elements
-	        return ((Element) obj).toBytes().length;
-	    } else if (obj instanceof Field) {
-	        // Fields themselves may not be serializable, but elements from the field are
-	        Element tmp = ((Field) obj).newRandomElement();
-	        return tmp.toBytes().length;
-	    } else {
-	        throw new IllegalArgumentException("Object type not supported for size calculation");
-	    }
-	}
-    public static void testSize() {
-    	CompositeOrderPP pp=new CompositeOrderPP();
-		try {
-	        System.out.println("Size of an element in G1: " + getSizeInBytes(pp.g_(pp.generateZN())) + " bytes");
-	        System.out.println("Size of an element in Gt: " + getSizeInBytes(pp.egg_(pp.generateZN())) + " bytes");
-	        System.out.println("Size of an element in Zq: " + getSizeInBytes(pp.ZN) + " bytes");
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	    }
-	}
-	public static void main(String arg[]) {
-		
-		//PP.testPrime();
-		//testComposite();
-		testSize();
-		testComposite();
-//		Size of an element in G1: 388 bytes
-//		Size of an element in Gt: 388 bytes
-//		Size of an element in Zq: 192 bytes
-	}
-	//testPP();
-	//composite generate a PP in 730641.2355ms
-	//composite exp on g1 in 6193.0977ms
-	//composite exp on gt in 20.1625ms
-	//composite pairing in 25740.7ms
 
+    public Pairing getPairing() {
+        return pairing;
+    }
+
+    public Field getGField() {
+        return gField;
+    }
+
+    public Field getGtField() {
+        return gtField;
+    }
+
+    public Field getZnField() {
+        return znField;
+    }
+
+    public BigInteger getOrder() {
+        return order;
+    }
+
+    public Element getGBase() {
+        return gBase.duplicate().getImmutable();
+    }
+
+    public Element getHBase() {
+        return hBase.duplicate().getImmutable();
+    }
+
+    public Element getGtBase() {
+        return gtBase.duplicate().getImmutable();
+    }
+
+    public BigInteger randomZn() {
+        BigInteger sample;
+        do {
+            sample = new BigInteger(order.bitLength(), random).mod(order);
+        } while (sample.signum() < 0 || sample.compareTo(order) >= 0);
+        return sample;
+    }
+
+    public BigInteger randomZnNonZero() {
+        BigInteger x;
+        do {
+            x = randomZn();
+        } while (x.equals(BigInteger.ZERO));
+        return x;
+    }
+
+    public Element gPow(BigInteger exponent) {
+        return signedPow(gPow, gBase, exponent);
+    }
+
+    public Element hPow(BigInteger exponent) {
+        return signedPow(hPow, hBase, exponent);
+    }
+
+    public Element gtPow(BigInteger exponent) {
+        return signedPow(gtPow, gtBase, exponent);
+    }
+
+    public Element pairing(Element left, Element right) {
+        return pairing.pairing(left, right).getImmutable();
+    }
+
+    public Element oneG() {
+        return gField.newOneElement().getImmutable();
+    }
+
+    public Element oneGT() {
+        return gtField.newOneElement().getImmutable();
+    }
+
+    public BigInteger normalize(BigInteger value) {
+        BigInteger reduced = value.mod(order);
+        return reduced.signum() < 0 ? reduced.add(order) : reduced;
+    }
+
+    public BigInteger encodeSignedInt(int value) {
+        return normalize(BigInteger.valueOf(value));
+    }
+
+    public Element hashToGroup(String rid, BigInteger[] vector) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            digest.update(rid.getBytes(StandardCharsets.UTF_8));
+            digest.update((byte) ':');
+            for (BigInteger coordinate : vector) {
+                byte[] bytes = coordinate.toByteArray();
+                digest.update(bytes);
+                digest.update((byte) ',');
+            }
+            BigInteger exponent = new BigInteger(1, digest.digest()).mod(order);
+            return gPow(exponent);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 is unavailable", e);
+        }
+    }
+
+    public static long sizeOfElement(Element element) {
+        return element.toBytes().length;
+    }
+
+    public static long sizeOfBigInteger(BigInteger value) {
+        return value.toByteArray().length;
+    }
+
+    public static long sizeOfBigIntegerArray(BigInteger[] values) {
+        long total = 0L;
+        for (BigInteger value : values) {
+            total += sizeOfBigInteger(value);
+        }
+        return total;
+    }
+
+    public static long sizeOfElementArray(Element[] values) {
+        long total = 0L;
+        for (Element value : values) {
+            total += sizeOfElement(value);
+        }
+        return total;
+    }
+
+    public static long sizeOfElementMatrix(Element[][] values) {
+        long total = 0L;
+        for (Element[] row : values) {
+            total += sizeOfElementArray(row);
+        }
+        return total;
+    }
+
+    public static long sizeOfIntArray(int[] values) {
+        return 4L * values.length;
+    }
+
+    public static long sizeOfString(String s) {
+        return s.getBytes(StandardCharsets.UTF_8).length;
+    }
+
+    private Element signedPow(ElementPowPreProcessing preProc, Element base, BigInteger exponent) {
+        BigInteger e = exponent;
+        if (e.signum() >= 0) {
+            return preProc.pow(e).getImmutable();
+        }
+        return preProc.pow(e.negate()).invert().getImmutable();
+    }
+
+    @Override
+    public String toString() {
+        return "CompositeOrderPP{" +
+                "|G|=" + sizeOfElement(gBase) +
+                ", |GT|=" + sizeOfElement(gtBase) +
+                ", |ZN|~=" + sizeOfBigInteger(order) +
+                ", orderBits=" + order.bitLength() +
+                '}';
+    }
+
+    public static void main(String[] args) {
+        CompositeOrderPP pp = new CompositeOrderPP();
+        System.out.println(pp);
+        System.out.println("g base bytes = " + sizeOfElement(pp.getGBase()));
+        System.out.println("gt base bytes = " + sizeOfElement(pp.getGtBase()));
+        System.out.println("sample H(RID,u) bytes = " + sizeOfElement(pp.hashToGroup("demo", new BigInteger[]{BigInteger.ONE, BigInteger.TWO})));
+        System.out.println("example normalize = " + Arrays.toString(new BigInteger[]{pp.normalize(BigInteger.valueOf(-3)), pp.normalize(BigInteger.valueOf(7))}));
+    }
 }

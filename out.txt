@@ -1,15 +1,119 @@
-Size of an element in G1: 130 bytes
-Size of an element in Gt: 130 bytes
-Size of an element in ZN: 64 bytes
-composite generate a PP in 428.10882000000004ms
-composite exp on g1 in 4.074673000000001ms
-composite exp on gt in 0.055618ms
-composite pairing in 16.788420000000002ms
 
-Size of an element in G1: 130 bytes
-Size of an element in Gt: 130 bytes
-Size of an element in Zq: 64 bytes
-generate a PP in 765.546984ms
-exp on g1 in 4.309467000000001ms
-exp on gt in 0.489191ms
-pairing in 14.508919ms
+Dec breakdown: core=1170.866 ms | dlog=1275.558 ms | total=2446.424 ms
+
+Input x               = [-67, 5, -89, 22, 74, 29]
+Pivotal input y_p     = [-128, 127, 127, -128, -128, -29]
+Pivotal weight w_p    = [50, -63, -53, -128, 110, 65]
+Plain dot(y_p, w_p)   = -20713
+Recovered dot(y_p,w_p)= -20713
+Final output          = [-7, 4, 8]
+
+================ Maac4ML single-demo metrics ================
+PP generation                       :      664.528 ms
+AASetup total                       :      211.532 ms
+AASetup avg/authority               :       52.883 ms
+Model publishing / Enc              :     1725.811 ms
+F1 time                             :        0.002 ms
+KGen total                          :      223.381 ms
+KGen avg/authority                  :       55.845 ms
+KGen max/authority                  :       60.594 ms
+Dec time                            :     2458.067 ms
+F2 time                             :        0.001 ms
+Online end-to-end                   :     2681.571 ms
+|G|                                 :          130 bytes
+|GT|                                :          130 bytes
+total authority PK bytes            :         6240 bytes
+total authority SK bytes            :         3071 bytes
+policy bytes                        :          221 bytes
+ciphertext bytes                    :         8281 bytes
+published model bytes (est.)        :         8449 bytes
+single authority request bytes      :          270 bytes
+total request bytes                 :         1080 bytes
+single authority response bytes     :          260 bytes
+total response bytes                :         1040 bytes
+vector dimension s                  : 6
+8-bit bound per coordinate          : [-128, 127]
+enumeration bound                   : 96774
+policy type                         : AND over all 4 attributes
+published model public part         : (F1, W1, F2, W2\setminus{wp}, fp, CT)
+plaintext pivotal input y_p         : [-128, 127, 127, -128, -128, -29]
+plaintext pivotal weight w_p        : [50, -63, -53, -128, 110, 65]
+authorized output                   : [-7, 4, 8]
+plain output                        : [-7, 4, 8]
+
+Recovered inner product = -20713
+Plaintext inner product = -20713
+Authorized decryption ok = true
+Unauthorized decryption rejected = true
+Dec breakdown: core=1161.053 ms | dlog=1576.514 ms | total=2737.566 ms
+Dec breakdown: core=491.312 ms | dlog=1098.856 ms | total=1590.168 ms
+Dec breakdown: core=940.625 ms | dlog=1247.810 ms | total=2188.435 ms
+Dec breakdown: core=927.629 ms | dlog=1390.811 ms | total=2318.440 ms
+Dec breakdown: core=922.565 ms | dlog=1778.206 ms | total=2700.771 ms
+
+Average online latency over 5 fresh runs: 2526.919 ms
+
+==== Authority scaling ====
+Dec breakdown: core=180.985 ms | dlog=1406.997 ms | total=1587.982 ms
+authorities=1 | KGen total=53.535 ms | Dec=1588.255 ms | Online=1641.812 ms | CT=2605 bytes
+Dec breakdown: core=683.470 ms | dlog=1626.751 ms | total=2310.221 ms
+authorities=2 | KGen total=106.713 ms | Dec=2310.619 ms | Online=2417.364 ms | CT=4495 bytes
+Dec breakdown: core=907.284 ms | dlog=1580.575 ms | total=2487.858 ms
+authorities=4 | KGen total=212.256 ms | Dec=2488.020 ms | Online=2700.323 ms | CT=8281 bytes
+Dec breakdown: core=1074.868 ms | dlog=1668.993 ms | total=2743.861 ms
+authorities=6 | KGen total=343.783 ms | Dec=2744.067 ms | Online=3087.924 ms | CT=12075 bytes
+----------------------------------------------------
+Input x               = [-67, 5, -89, 22, 74, 29]
+Pivotal input y_p     = [-128, 127, 127, -128, -128, -29]
+Pivotal weight w_p    = [50, -63, -53, -128, 110, 65]
+Plain dot(y_p, w_p)   = -20713
+Recovered dot(y_p,w_p)= -20713
+Final output          = [-7, 4, 8]
+
+================ Maac4ML single-demo metrics ================
+PP generation                       :      731.327 ms
+AASetup total                       :      217.145 ms
+AASetup avg/authority               :       54.286 ms
+Model publishing / Enc              :     1834.324 ms
+F1 time                             :        0.002 ms
+KGen total                          :      234.240 ms
+KGen avg/authority                  :       58.560 ms
+KGen max/authority                  :       60.810 ms
+Dec time                            :     2537.727 ms
+F2 time                             :        0.001 ms
+Online end-to-end                   :     2772.100 ms
+|G|                                 :          130 bytes
+|GT|                                :          130 bytes
+total authority PK bytes            :         6240 bytes
+total authority SK bytes            :         3071 bytes
+policy bytes                        :          221 bytes
+ciphertext bytes                    :         8281 bytes
+published model bytes (est.)        :         8449 bytes
+single authority request bytes      :          270 bytes
+total request bytes                 :         1080 bytes
+single authority response bytes     :          260 bytes
+total response bytes                :         1040 bytes
+vector dimension s                  : 6
+8-bit bound per coordinate          : [-128, 127]
+enumeration bound                   : 96774
+policy type                         : AND over all 4 attributes
+published model public part         : (F1, W1, F2, W2\setminus{wp}, fp, CT)
+plaintext pivotal input y_p         : [-128, 127, 127, -128, -128, -29]
+plaintext pivotal weight w_p        : [50, -63, -53, -128, 110, 65]
+authorized output                   : [-7, 4, 8]
+plain output                        : [-7, 4, 8]
+
+Recovered inner product = -20713
+Plaintext inner product = -20713
+Authorized decryption ok = true
+Unauthorized decryption rejected = true
+
+Average online latency over 5 fresh runs: 2585.435 ms
+
+==== Authority scaling ====
+authorities=1 | KGen total=55.833 ms | Dec=1630.203 ms | Online=1686.060 ms | CT=2645 bytes
+authorities=2 | KGen total=110.219 ms | Dec=2461.430 ms | Online=2571.704 ms | CT=4495 bytes
+authorities=4 | KGen total=229.065 ms | Dec=2538.593 ms | Online=2767.757 ms | CT=8281 bytes
+authorities=6 | KGen total=360.428 ms | Dec=2749.438 ms | Online=3109.943 ms | CT=12075 bytes
+
+--------------------------------------------------------------------------------------------
